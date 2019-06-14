@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# export TOKEN = 'xx'
+
+#testo=$(git log --no-color --format='Commit: %hAuthor: %aN <%aE>Message: %sRefs: %d' -1)
+#echo $(git log --no-color --format='Commit: %h%nAuthor: %aN <%aE>%nMessage: %s%nRefs: %d' -1)
+
+
+# $testo =~ '/Commit:\ (.*)\nAuthor:\ (.*)\nMessage:\ (.*)\nRefs:\ \ \((.*)\)'
+testo=$(git log --no-color --format='Commit: %hAuthor: %aN <%aE>Refs: %dMessage: %s' -1)
+
+##git log --no-color --format='Commit: %h%nAuthor: %aN <%aE>%nMessage: %s%nRefs: %d' -1 | ( read testo; echo $testo ; )
+
+echo $testo
+
+[[ $testo =~ ^Commit:\ (.*)Author:\ (.*)Refs:\ \ \((.*)\)Message:\ (.*)$ ]] && echo matched
+
+
+echo ${BASH_REMATCH[0]}
+echo ${BASH_REMATCH[1]}
+echo ${BASH_REMATCH[2]}
+echo ${BASH_REMATCH[3]}
+echo ${BASH_REMATCH[4]}
+
+BODY='{"source_commit":{"commit_id":"'${BASH_REMATCH[1]}'","message":"'${BASH_REMATCH[4]}'","author":"'${BASH_REMATCH[2]}'"}}'
+
+echo ${BODY}
+
+curl -X POST -H "X-TrackerToken: xx" -H "Content-Type: application/json" -d "$BODY" "https://www.pivotaltracker.com/services/v5/source_commits"
