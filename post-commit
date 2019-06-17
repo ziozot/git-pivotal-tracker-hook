@@ -1,29 +1,17 @@
 #!/bin/bash
 
-# export TOKEN = 'xx'
+export TOKEN=$(git config --get pivotal.token)
 
-#testo=$(git log --no-color --format='Commit: %hAuthor: %aN <%aE>Message: %sRefs: %d' -1)
-#echo $(git log --no-color --format='Commit: %h%nAuthor: %aN <%aE>%nMessage: %s%nRefs: %d' -1)
-
-
-# $testo =~ '/Commit:\ (.*)\nAuthor:\ (.*)\nMessage:\ (.*)\nRefs:\ \ \((.*)\)'
 testo=$(git log --no-color --format='Commit: %hAuthor: %aN <%aE>Refs: %dMessage: %s' -1)
 
-##git log --no-color --format='Commit: %h%nAuthor: %aN <%aE>%nMessage: %s%nRefs: %d' -1 | ( read testo; echo $testo ; )
+[[ $testo =~ ^Commit:\ (.*)Author:\ (.*)Refs:\ \ \((.*)\)Message:\ (.*)$ ]] 
 
-echo $testo
+IDCOMMIT=${BASH_REMATCH[1]}
+AUTHOR=${BASH_REMATCH[2]}
+MESSAGE=${BASH_REMATCH[4]}
 
-[[ $testo =~ ^Commit:\ (.*)Author:\ (.*)Refs:\ \ \((.*)\)Message:\ (.*)$ ]] && echo matched
+BODY='{"source_commit":{"commit_id":"'${IDCOMMIT}'","message":"'${MESSAGE}'","author":"'${AUTHOR}'"}}'
 
-
-echo ${BASH_REMATCH[0]}
-echo ${BASH_REMATCH[1]}
-echo ${BASH_REMATCH[2]}
-echo ${BASH_REMATCH[3]}
-echo ${BASH_REMATCH[4]}
-
-BODY='{"source_commit":{"commit_id":"'${BASH_REMATCH[1]}'","message":"'${BASH_REMATCH[4]}'","author":"'${BASH_REMATCH[2]}'"}}'
-
-echo ${BODY}
-
-curl -X POST -H "X-TrackerToken: xx" -H "Content-Type: application/json" -d "$BODY" "https://www.pivotaltracker.com/services/v5/source_commits"
+if [[ $MESSAGE =~ ^\[#[0-9]*\](.*)$ ]]
+	then echo curl -X POST -H "X-TrackerToken: $TOKEN" -H "Content-Type: application/json" -d "$BODY" "https://www.pivotaltracker.com/services/v5/source_commits"
+fi 
