@@ -1,3 +1,3 @@
 # git-pivotal-tracker-hook
-post commit hook for pivotal integration
+Bash script as post-commit hook for pivotal integration
 
