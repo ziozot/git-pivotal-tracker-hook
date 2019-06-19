@@ -13,5 +13,5 @@ MESSAGE=${BASH_REMATCH[4]}
 BODY='{"source_commit":{"commit_id":"'${IDCOMMIT}'","message":"'${MESSAGE}'","author":"'${AUTHOR}'"}}'
 
 if [[ $MESSAGE =~ ^\[#[0-9]*\](.*)$ ]]
-	then echo curl -X POST -H "X-TrackerToken: $TOKEN" -H "Content-Type: application/json" -d "$BODY" "https://www.pivotaltracker.com/services/v5/source_commits"
+	then curl -X POST -H "X-TrackerToken: $TOKEN" -H "Content-Type: application/json" -d "$BODY" "https://www.pivotaltracker.com/services/v5/source_commits"
 fi 
