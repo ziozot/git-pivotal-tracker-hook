@@ -11,7 +11,7 @@ It push your commit's messages under the Pivotal Tracker's stories you're workin
 - Click on *Profile* and scroll down until *API TOKEN*
 
 ##### 2. Put your pivotal tracker token into the git configuration
-    git config pivotal.token {your-pivotal-tracker-token}
+    git config --global pivotal.token {your-pivotal-tracker-token}
 
 ps. without brackets!
 
