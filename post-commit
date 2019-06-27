@@ -9,7 +9,7 @@ testo=$(git log --no-color --format='Commit: %hAuthor: %aN <%aE>Refs: %dMessage:
 IDCOMMIT=${BASH_REMATCH[1]}
 AUTHOR=${BASH_REMATCH[2]}
 MESSAGE=${BASH_REMATCH[4]}
-PROJECT_IT=$(git config --get pivotal.project.id)
+PROJECT_ID=$(git config --get pivotal.project.id)
 BODY='{"source_commit":{"commit_id":"'${IDCOMMIT}'","message":"'${MESSAGE}'","author":"'${AUTHOR}'"}}'
 
 if [[ $MESSAGE =~ ^\[#([0-9]*)\](.*)$ ]]
@@ -18,14 +18,14 @@ then
 	
 	STORY_ID=${BASH_REMATCH[1]}
 	
-	if [[ $(git config remote.origin.url) =~ ^(.*)\/(.*)\.git$ ]] && [[ ! -z "$PROJECT_IT" ]]
+	if [[ $(git config remote.origin.url) =~ ^(.*)\/(.*)\.git$ ]] && [[ ! -z "$PROJECT_ID" ]]
 	then
 		repo=${BASH_REMATCH[2],,}
-		labelsresponce=$(curl -X GET -H "X-TrackerToken: $TOKEN" "https://www.pivotaltracker.com/services/v5/projects/$PROJECT_IT/stories/${STORY_ID}/labels")
+		labelsresponce=$(curl -X GET -H "X-TrackerToken: $TOKEN" "https://www.pivotaltracker.com/services/v5/projects/$PROJECT_ID/stories/${STORY_ID}/labels")
 		
 		if ! [[ $labelsresponce =~ ^(.*)\"name\":\"${repo}\"(.*)$ ]] 
 		then
-			curl -X POST -H "X-TrackerToken: $TOKEN" -H "Content-Type: application/json" -d '{"name":"'$repo'"}' "https://www.pivotaltracker.com/services/v5/projects/$PROJECT_IT/stories/$STORY_ID/labels"
+			curl -X POST -H "X-TrackerToken: $TOKEN" -H "Content-Type: application/json" -d '{"name":"'$repo'"}' "https://www.pivotaltracker.com/services/v5/projects/$PROJECT_ID/stories/$STORY_ID/labels"
 		fi
 	fi
 fi 
