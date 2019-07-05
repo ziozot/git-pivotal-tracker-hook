@@ -2,30 +2,33 @@
 
 TOKEN=$(git config --get pivotal.token)
 
-testo=$(git log --no-color --format='Commit: %hAuthor: %aN <%aE>Refs: %dMessage: %s' -1)
+testo=$(git log --no-color --format='Commit: %hAuthor: %aN <%aE>Refs: %dMessage: %B' -1)
 
 [[ $testo =~ ^Commit:\ (.*)Author:\ (.*)Refs:\ \ \((.*)\)Message:\ (.*)$ ]] 
 
 IDCOMMIT=${BASH_REMATCH[1]}
 AUTHOR=${BASH_REMATCH[2]}
-MESSAGE=${BASH_REMATCH[4]}
-PROJECT_ID=$(git config --get pivotal.project.id)
-BODY='{"source_commit":{"commit_id":"'${IDCOMMIT}'","message":"'${MESSAGE}'","author":"'${AUTHOR}'"}}'
+REF=${BASH_REMATCH[3]}
+MESSAGE=$( echo "${BASH_REMATCH[4]}" | sed ':a;N;$!ba;s/\n/\\n/g' )
+BODY='{"source_commit":{"commit_id":"'${IDCOMMIT}'","message":"'${MESSAGE}'","author":"'${AUTHOR}'","repo":"'${REF}'"}}'
 
 if [[ $MESSAGE =~ ^\[#([0-9]*)\](.*)$ ]]
 then 
-	curl -X POST -H "X-TrackerToken: $TOKEN" -H "Content-Type: application/json" -d "$BODY" "https://www.pivotaltracker.com/services/v5/source_commits"
+	storyresponce=$(curl -X POST -H "X-TrackerToken: $TOKEN" -H "Content-Type: application/json" -d "$BODY" "https://www.pivotaltracker.com/services/v5/source_commits")
 	
 	STORY_ID=${BASH_REMATCH[1]}
 	
-	if [[ $(git config remote.origin.url) =~ ^(.*)\/(.*)\.git$ ]] && [[ ! -z "$PROJECT_ID" ]]
+	if [[ $(git config remote.origin.url) =~ ^(.*)\/(.*)\.git$ ]]
 	then
 		repo=${BASH_REMATCH[2],,}
-		labelsresponce=$(curl -X GET -H "X-TrackerToken: $TOKEN" "https://www.pivotaltracker.com/services/v5/projects/$PROJECT_ID/stories/${STORY_ID}/labels")
 		
-		if ! [[ $labelsresponce =~ ^(.*)\"name\":\"${repo}\"(.*)$ ]] 
+		if ! [[ $storyresponce =~ ^(.*)\"name\":\"${repo}\"(.*)$ ]] 
 		then
-			curl -X POST -H "X-TrackerToken: $TOKEN" -H "Content-Type: application/json" -d '{"name":"'$repo'"}' "https://www.pivotaltracker.com/services/v5/projects/$PROJECT_ID/stories/$STORY_ID/labels"
+			if [[ $storyresponce =~ ^.*\"project_id\":([0-9]+)\,.*$ ]]
+			then
+				PROJECT_IT=${BASH_REMATCH[1]}
+				curl -X POST -H "X-TrackerToken: $TOKEN" -H "Content-Type: application/json" -d '{"name":"'$repo'"}' "https://www.pivotaltracker.com/services/v5/projects/$PROJECT_IT/stories/$STORY_ID/labels"
+			fi
 		fi
 	fi
 fi 
